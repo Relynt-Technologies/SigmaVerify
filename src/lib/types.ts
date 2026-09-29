@@ -8,6 +8,11 @@ export interface Profile {
   id: string
   full_name: string
   company_name: string | null
+  email: string | null
+  email_verified: boolean
+  email_verified_at: string | null
+  email_verified_override: boolean
+  email_verified_overridden_at: string | null
   role: UserRole
   subscription_status: SubscriptionStatus
   bgv_seats_total: number

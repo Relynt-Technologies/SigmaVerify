@@ -165,6 +165,12 @@ export type Database = {
           bgv_seats_used: number | null
           company_name: string | null
           created_at: string
+          email: string | null
+          email_verified: boolean
+          email_verified_at: string | null
+          email_verified_override: boolean
+          email_verified_overridden_at: string | null
+          email_verified_overridden_by: string | null
           full_name: string
           id: string
           role: Database["public"]["Enums"]["user_role"]
@@ -175,6 +181,11 @@ export type Database = {
           bgv_seats_used?: number | null
           company_name?: string | null
           created_at?: string
+          email?: string | null
+          email_verified_at?: string | null
+          email_verified_override?: boolean
+          email_verified_overridden_at?: string | null
+          email_verified_overridden_by?: string | null
           full_name: string
           id: string
           role?: Database["public"]["Enums"]["user_role"]
@@ -185,6 +196,11 @@ export type Database = {
           bgv_seats_used?: number | null
           company_name?: string | null
           created_at?: string
+          email?: string | null
+          email_verified_at?: string | null
+          email_verified_override?: boolean
+          email_verified_overridden_at?: string | null
+          email_verified_overridden_by?: string | null
           full_name?: string
           id?: string
           role?: Database["public"]["Enums"]["user_role"]
@@ -286,6 +302,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_set_email_verified: {
+        Args: { target_user_id: string; verified: boolean }
+        Returns: undefined
+      }
       get_employee_by_token: {
         Args: { p_token: string }
         Returns: {
