@@ -134,7 +134,7 @@ serve(async (req) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${resendKey}` },
         body: JSON.stringify({
-          from: 'relynt <shak@certsigma.com>',
+          from: 'Relynt <hello@relyntai.com>',
           to: hrEmail,
           subject: `BGV Complete — ${employeeName} | ${verdict}`,
           html: hrHtml,
@@ -144,7 +144,7 @@ serve(async (req) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${resendKey}` },
         body: JSON.stringify({
-          from: 'relynt <shak@certsigma.com>',
+          from: 'Relynt <hello@relyntai.com>',
           to: employeeEmail,
           subject: 'Your background verification is complete — relynt',
           html: employeeHtml,
