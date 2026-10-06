@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Eye, FileText, Mail } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -11,11 +12,46 @@ import type { Employee } from '@/lib/types'
 interface ProgressTableProps {
   employees: (Employee & { progress: number })[]
   loading?: boolean
+  selectable?: boolean
+  selectedIds?: string[]
+  onToggleSelect?: (employee: Employee) => void
+  onToggleAll?: () => void
   onResendInvite?: (employee: Employee) => void
   onInitiateBgv?: (employee: Employee) => void
 }
 
-export function ProgressTable({ employees, loading, onResendInvite, onInitiateBgv }: ProgressTableProps) {
+function SelectAllCheckbox({ checked, indeterminate, onChange }: {
+  checked: boolean
+  indeterminate: boolean
+  onChange: () => void
+}) {
+  const ref = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    if (ref.current) ref.current.indeterminate = indeterminate
+  }, [indeterminate])
+  return (
+    <input
+      ref={ref}
+      type="checkbox"
+      role="checkbox"
+      checked={checked}
+      onChange={onChange}
+      aria-label="Select all employees"
+      className="size-4 accent-primary cursor-pointer"
+    />
+  )
+}
+
+export function ProgressTable({
+  employees,
+  loading,
+  selectable,
+  selectedIds = [],
+  onToggleSelect,
+  onToggleAll,
+  onResendInvite,
+  onInitiateBgv,
+}: ProgressTableProps) {
   const navigate = useNavigate()
 
   if (loading) {
@@ -37,10 +73,24 @@ export function ProgressTable({ employees, loading, onResendInvite, onInitiateBg
     )
   }
 
+  const selectableEmployees = selectable ? employees.filter(e => e.status === 'pending_initiation') : []
+  const allSelected = selectableEmployees.length > 0 &&
+    selectableEmployees.every(e => selectedIds.includes(e.id))
+  const someSelected = selectableEmployees.some(e => selectedIds.includes(e.id))
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
+          {selectable && (
+            <TableHead className="w-10">
+              <SelectAllCheckbox
+                checked={allSelected}
+                indeterminate={!allSelected && someSelected}
+                onChange={() => onToggleAll?.()}
+              />
+            </TableHead>
+          )}
           <TableHead>Name</TableHead>
           <TableHead>Email</TableHead>
           <TableHead>Status</TableHead>
@@ -52,6 +102,20 @@ export function ProgressTable({ employees, loading, onResendInvite, onInitiateBg
       <TableBody>
         {employees.map(employee => (
           <TableRow key={employee.id}>
+            {selectable && (
+              <TableCell className="w-10">
+                {employee.status === 'pending_initiation' ? (
+                  <input
+                    type="checkbox"
+                    role="checkbox"
+                    checked={selectedIds.includes(employee.id)}
+                    onChange={() => onToggleSelect?.(employee)}
+                    aria-label={`Select ${employee.full_name}`}
+                    className="size-4 accent-primary cursor-pointer"
+                  />
+                ) : null}
+              </TableCell>
+            )}
             <TableCell className="font-medium text-foreground">{employee.full_name}</TableCell>
             <TableCell className="text-muted-foreground text-sm">{employee.email}</TableCell>
             <TableCell>

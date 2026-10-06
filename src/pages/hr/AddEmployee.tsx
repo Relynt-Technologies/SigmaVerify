@@ -6,8 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import * as XLSX from 'xlsx'
-import Anthropic from '@anthropic-ai/sdk'
-import { UserPlus, Upload, FileText, CheckCircle2, AlertCircle, ArrowLeft } from 'lucide-react'
+import { UserPlus, Upload, FileText, CheckCircle2, AlertCircle, ArrowLeft, Sparkles } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { PageWrapper } from '@/components/layout/PageWrapper'
@@ -17,26 +16,29 @@ import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
+const phoneSchema = z
+  .string()
+  .trim()
+  .min(1, 'Phone required')
+  .regex(/^\+?[\d\s()-]{7,20}$/, 'Enter a valid phone number')
+
 const manualSchema = z.object({
   full_name: z.string().min(2, 'Name required'),
   email: z.string().email('Valid email required'),
-  phone: z.string().optional(),
+  phone: phoneSchema,
 })
 type ManualFormData = z.infer<typeof manualSchema>
 
-interface BulkEmployee { full_name: string; email: string; phone?: string; error?: string }
+interface BulkEmployee { full_name: string; email: string; phone: string; error?: string }
 
 export default function AddEmployee() {
   const { profile } = useAuth()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [bulkEmployees, setBulkEmployees] = useState<BulkEmployee[]>([])
-  const [resumeLoading, setResumeLoading] = useState(false)
-  const [resumeData, setResumeData] = useState<{ full_name: string; email: string } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const resumeInputRef = useRef<HTMLInputElement>(null)
 
-  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<ManualFormData>({
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ManualFormData>({
     resolver: zodResolver(manualSchema),
   })
 
@@ -48,7 +50,7 @@ export default function AddEmployee() {
           hr_id: profile!.id,
           full_name: emp.full_name,
           email: emp.email,
-          phone: emp.phone ?? null,
+          phone: emp.phone,
           status: 'pending_initiation',
         })
         .select()
@@ -110,69 +112,16 @@ export default function AddEmployee() {
         if (!name) return { full_name: name, email, phone, error: 'Name missing' }
         if (!email || !z.string().email().safeParse(email).success)
           return { full_name: name, email, phone, error: 'Invalid email' }
+        if (!phone || !phoneSchema.safeParse(phone).success)
+          return { full_name: name, email, phone, error: 'Phone missing or invalid' }
 
-        return { full_name: name, email, phone: phone || undefined }
+        return { full_name: name, email, phone }
       })
 
       setBulkEmployees(parsed)
     }
     reader.readAsArrayBuffer(file)
     e.target.value = ''
-  }
-
-  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (file.type !== 'application/pdf') {
-      toast.error('Please upload a PDF resume')
-      return
-    }
-
-    setResumeLoading(true)
-    setResumeData(null)
-
-    try {
-      const arrayBuffer = await file.arrayBuffer()
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)))
-
-      const client = new Anthropic({ apiKey: import.meta.env.VITE_ANTHROPIC_API_KEY, dangerouslyAllowBrowser: true })
-
-      const response = await client.messages.create({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 256,
-        messages: [{
-          role: 'user',
-          content: [
-            {
-              type: 'document',
-              source: { type: 'base64', media_type: 'application/pdf', data: base64 },
-            },
-            {
-              type: 'text',
-              text: 'Extract the candidate\'s full name and email address from this resume. Respond with JSON only: {"full_name": "...", "email": "..."}. If not found, use empty string.',
-            },
-          ],
-        }],
-      })
-
-      const text = response.content[0].type === 'text' ? response.content[0].text : ''
-      const jsonMatch = text.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]) as { full_name: string; email: string }
-        setResumeData(parsed)
-        setValue('full_name', parsed.full_name)
-        setValue('email', parsed.email)
-        toast.success('Resume parsed — please confirm the details')
-      } else {
-        toast.error('Could not extract data from resume')
-      }
-    } catch (err) {
-      toast.error('Resume parsing failed')
-      console.error(err)
-    } finally {
-      setResumeLoading(false)
-      e.target.value = ''
-    }
   }
 
   return (
@@ -194,8 +143,11 @@ export default function AddEmployee() {
             <TabsTrigger value="excel" className="flex-1 gap-1.5">
               <Upload className="w-3.5 h-3.5" /> Excel Upload
             </TabsTrigger>
-            <TabsTrigger value="resume" className="flex-1 gap-1.5">
+            <TabsTrigger value="resume" disabled className="flex-1 gap-1.5">
               <FileText className="w-3.5 h-3.5" /> Resume Parse
+              <span className="text-[10px] font-semibold uppercase tracking-wide bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                Soon
+              </span>
             </TabsTrigger>
           </TabsList>
 
@@ -218,8 +170,9 @@ export default function AddEmployee() {
                     {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Phone (optional)</Label>
+                    <Label>Phone *</Label>
                     <Input placeholder="+91 98765 43210" {...register('phone')} />
+                    {errors.phone && <p className="text-xs text-red-500">{errors.phone.message}</p>}
                   </div>
                   <Button type="submit" className="w-full" loading={isSubmitting || manualMutation.isPending}>
                     Add Employee
@@ -237,7 +190,7 @@ export default function AddEmployee() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Upload a .xlsx file with columns: <strong>Name</strong>, <strong>Email</strong>, Phone (optional)
+                  Upload a .xlsx file with columns: <strong>Name</strong>, <strong>Email</strong>, <strong>Phone</strong>
                 </p>
                 <input ref={fileInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleExcelUpload} />
                 <Button variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()}>
@@ -280,59 +233,31 @@ export default function AddEmployee() {
             </Card>
           </TabsContent>
 
-          {/* Resume */}
+          {/* Resume — coming soon */}
           <TabsContent value="resume">
             <Card>
-              <CardHeader>
-                <CardTitle>Parse from Resume</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Upload a PDF resume — AI will extract the candidate's name and email for you to confirm.
-                </p>
-                <input ref={resumeInputRef} type="file" accept="application/pdf" className="hidden" onChange={handleResumeUpload} />
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => resumeInputRef.current?.click()}
-                  loading={resumeLoading}
-                >
-                  <FileText className="w-4 h-4 mr-2" />
-                  {resumeLoading ? 'Parsing resume...' : 'Upload PDF Resume'}
-                </Button>
-
-                {resumeData && (
-                  <div className="p-3 bg-[#063840]/5 rounded-lg border border-[#063840]/20 text-sm">
-                    <p className="font-medium text-[#063840] mb-1">Extracted from resume:</p>
-                    <p>Name: <strong>{resumeData.full_name || '—'}</strong></p>
-                    <p>Email: <strong>{resumeData.email || '—'}</strong></p>
-                  </div>
-                )}
-
-                <form onSubmit={handleSubmit(data => manualMutation.mutate(data))} className="space-y-4">
-                  <div className="space-y-1.5">
-                    <Label>Full Name *</Label>
-                    <Input placeholder="Auto-filled from resume" {...register('full_name')} />
-                    {errors.full_name && <p className="text-xs text-red-500">{errors.full_name.message}</p>}
+              <CardContent className="py-12">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="relative">
+                    <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
+                      <FileText className="w-10 h-10 text-primary" />
+                    </div>
+                    <span className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-sm">
+                      <Sparkles className="w-4 h-4" />
+                    </span>
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Email *</Label>
-                    <Input type="email" placeholder="Auto-filled from resume" {...register('email')} />
-                    {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+                    <h3 className="text-lg font-semibold text-foreground">Coming Soon</h3>
+                    <p className="text-sm text-muted-foreground max-w-sm">
+                      Upload a PDF resume and let AI extract the candidate's details automatically.
+                      This feature is on its way.
+                    </p>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label>Phone (optional)</Label>
-                    <Input placeholder="+91 98765 43210" {...register('phone')} />
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    loading={isSubmitting || manualMutation.isPending}
-                    disabled={!resumeData}
-                  >
-                    Confirm & Add Employee
-                  </Button>
-                </form>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-primary/10 text-primary px-3 py-1 rounded-full">
+                    <Sparkles className="w-3 h-3" />
+                    In development
+                  </span>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

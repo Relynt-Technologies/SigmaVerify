@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relynt – Sample Background Verification Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--p:#003941;--s:#4DC5CD;--ink:#1c2a2c;--mute:#5b6b6e;--line:#dce9ea;--bg:#f3f9f9;
+ --clear:#1c9c5e;--clearbg:#e6f7ee;--disc:#d64545;--discbg:#fdecec;
+ --minor:#e08a1e;--minorbg:#fdf1e0;--gray:#6b7678;--graybg:#eef2f2;
+ --insuf:#c9a200;--insufbg:#fbf6da;--except:#2266cc;--exceptbg:#e7f0fc;--inconc:#6a3fb5;--inconcbg:#efe7fb}
+*{box-sizing:border-box}
+body{margin:0;background:#e7f0f0;color:var(--ink);font:13.5px/1.55 Inter,Arial,sans-serif}
+.page{width:820px;min-height:1060px;margin:22px auto;background:#fff;padding:34px 46px 56px;box-shadow:0 2px 16px rgba(0,57,65,.14);position:relative;overflow:hidden}
+.pb{page-break-before:always}
+@page{size:A4;margin:0}
+@media print{body{background:#fff}.page{box-shadow:none;margin:0;width:auto;min-height:100vh}}
+
+/* header strip repeated on inner pages */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;margin-bottom:4px}
+.hdr .brand{display:flex;align-items:center;gap:9px}
+.hdr .logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;font:700 15px/30px Sora,Arial;text-align:center}
+.hdr .brand b{font:700 15px Sora,Arial;color:var(--p)}
+.hdr .company{font:700 20px Sora,Arial;color:var(--p);margin:2px 0 0}
+.hdr .ref{text-align:right;font-size:11px;color:var(--mute)}
+.hdr .ref b{color:var(--p);font-size:12px}
+.hdr .iso{width:52px;height:52px;border-radius:50%;border:2px solid var(--s);display:flex;align-items:center;justify-content:center;font:700 9px/1.1 Sora,Arial;color:var(--p);text-align:center;flex-shrink:0}
+.hdrtop{display:flex;justify-content:space-between;align-items:flex-start}
+.accentline{height:5px;background:linear-gradient(90deg,var(--p),var(--s));margin:0 -46px 20px}
+.foot{position:absolute;left:46px;right:46px;bottom:14px;font-size:10px;color:var(--mute);border-top:1px solid var(--line);padding-top:8px}
+
+/* generic card */
+.card{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px;break-inside:avoid;page-break-inside:avoid}
+.card-h{background:var(--bg);color:var(--p);font:700 13px Sora,Arial;padding:10px 16px;text-align:center;letter-spacing:.2px}
+table.kv{width:100%;border-collapse:collapse}
+table.kv td{padding:9px 16px;border-top:1px solid var(--line);font-size:12.5px}
+table.kv td.k{color:var(--mute);width:40%}
+table.kv tr:first-child td{border-top:none}
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;font:700 10.5px Sora,Arial;letter-spacing:.3px}
+.pill.clear{background:var(--clearbg);color:var(--clear)}
+.pill.disc{background:var(--discbg);color:var(--disc)}
+.badge{display:inline-flex;align-items:center;gap:4px;background:var(--clearbg);color:var(--clear);font:700 11px Sora,Arial;padding:3px 10px;border-radius:20px}
+
+/* CHECK label strip */
+.checklbl{border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:16px}
+.checklbl .n{color:var(--s);font:700 11px Sora,Arial;letter-spacing:1px;text-transform:uppercase}
+.checklbl h2{margin:2px 0 0;font:700 18px Sora,Arial;color:var(--p)}
+
+/* severity/footer status bar */
+.statusbar{display:flex;justify-content:space-between;background:var(--bg);padding:9px 16px;font-size:11.5px;border-top:1px solid var(--line)}
+.statusbar .k{color:var(--mute)}
+table.dt{width:100%;border-collapse:collapse;font-size:12px}
+table.dt th{background:var(--p);color:#fff;font:700 11.5px Sora,Arial;text-align:left;padding:8px 12px}
+table.dt td{padding:8px 12px;border-top:1px solid var(--line)}
+table.dt tr:nth-child(even) td{background:#fafdfd}
+.matched{color:var(--clear);font-weight:700}
+.watermark{position:absolute;top:44%;left:50%;transform:translate(-50%,-50%) rotate(-22deg);font:800 42px Sora,Arial;color:rgba(0,57,65,0.08);letter-spacing:4px;pointer-events:none;white-space:nowrap;z-index:0}
+
+/* Cover */
+.cover{background:linear-gradient(160deg,#001f24 0%,var(--p) 45%,#0a5a66 100%);color:#fff;padding:0;width:820px;height:1080px;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.cover .topbar{display:flex;justify-content:flex-end;padding:22px 40px 0;font-size:11px;opacity:.75;flex:0 0 auto}
+.cover .topbar b{color:#fff}
+.cover .midwrap{flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.cover .mono{width:130px;height:130px;border-radius:28px;background:linear-gradient(135deg,var(--s),#8fe3e8);display:flex;align-items:center;justify-content:center;font:800 62px Sora,Arial;color:var(--p)}
+.cover h1{text-align:center;font:800 42px Sora,Arial;margin:26px 0 4px}
+.cover .tag{text-align:center;font:600 18px Sora,Arial;color:var(--s);margin:0}
+.cover .sub{text-align:center;font:600 15px Inter,Arial;color:#dff5f6;margin-top:26px}
+.cover .verifies{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:34px;padding:0 60px;max-width:600px}
+.cover .vchip{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.35);border-radius:24px;padding:7px 16px;font:600 12px Inter,Arial;display:flex;align-items:center;gap:6px;white-space:nowrap;flex:0 0 auto}
+.cover .vchip .dot{width:8px;height:8px;border-radius:50%;background:#59e08a;flex-shrink:0}
+.cover .footbrand{flex:0 0 auto;background:rgba(0,0,0,.28);padding:16px 40px;font-size:10.5px;text-align:center;opacity:.9;line-height:1.5}
+
+h3.sectitle{font:700 14.5px Sora,Arial;color:var(--p);margin:12px 0 7px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sumcard{border:1px solid var(--line);border-radius:10px;padding:7px 12px}
+.sumcard .row1{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.sumcard b.title{font:700 12.5px Sora,Arial;color:var(--ink)}
+.sumcard .meta{font-size:11px;color:var(--mute);margin-top:4px}
+.sumcard .pg{font-size:11px;color:var(--s);font-weight:700}
+.legend-row{display:flex;gap:12px;padding:4.5px 0;border-top:1px solid var(--line)}
+.legend-row:first-child{border-top:none}
+.legend-dot{width:13px;height:13px;border-radius:50%;flex:0 0 13px;margin-top:3px}
+.legend-row b{font:700 12px Sora,Arial;display:block}
+.legend-row span{font-size:11px;color:var(--mute)}
+.riskbar{height:14px;border-radius:8px;background:linear-gradient(90deg,#d64545,#e08a1e,#e0c31e,#8bc63f,#1c9c5e);position:relative;margin:6px 0 4px}
+.riskbar .marker{position:absolute;top:-4px;width:3px;height:22px;background:var(--p);border-radius:2px}
+.photo{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--s),var(--p));display:flex;align-items:center;justify-content:center;color:#fff;font:700 22px Sora,Arial}
+.iconbox{width:36px;height:36px;border-radius:9px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex:0 0 36px;font-size:16px}
+.infoline{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.infoline b{display:block;font-size:12.5px}
+.infoline span{color:var(--mute);font-size:11px}
+</style>
+</head>
+<body>
+
+<!-- ============ PAGE 1 : COVER ============ -->
+<div class="page cover">
+  <div class="topbar">Powered By&nbsp; <b>Relynt</b></div>
+  <div class="midwrap">
+    <div class="mono">R</div>
+    <h1>Relynt Verify</h1>
+    <div class="tag">Trust You Can Rely On</div>
+    <div class="sub">Background Verification Report — Sample Template</div>
+    <div class="verifies">
+      <div class="vchip"><span class="dot"></span>Identity Verified</div>
+      <div class="vchip"><span class="dot"></span>Education Verified</div>
+      <div class="vchip"><span class="dot"></span>Employment Verified</div>
+      <div class="vchip"><span class="dot"></span>Criminal Record Verified</div>
+      <div class="vchip"><span class="dot"></span>Reference Verified</div>
+      <div class="vchip"><span class="dot"></span>Address Verified</div>
+    </div>
+  </div>
+  <div class="footbrand">This is a sample, illustrative report generated for demonstration purposes. All names, numbers and images are fictional placeholders.</div>
+</div>
+
+<!-- ============ PAGE 2 : SUMMARY ============ -->
+<div class="page pb">
+  <div class="hdrtop">
+    <div class="hdr brand" style="padding:0"><div class="logo">R</div><b style="font-size:17px">Relynt</b></div>
+    <div class="iso">ISO<br>27001<br>Certified</div>
+  </div>
+  <div class="hdr" style="padding-top:2px">
+    <div class="company">[Client Legal Name]</div>
+    <div class="ref">Ref No.<br><b>REL-SAMPLE-000123</b></div>
+  </div>
+  <div class="accentline"></div>
+
+  <div class="grid2" style="align-items:stretch;margin-bottom:10px">
+    <div class="card" style="margin-bottom:0">
+      <div style="padding:16px;display:flex;gap:14px;align-items:center">
+        <div class="photo">SC</div>
+        <div>
+          <b style="font:700 15px Sora,Arial;color:var(--p)">Sample Candidate</b><br>
+          <span style="color:var(--mute);font-size:11.5px">+91 XXXXX-XX000 (Phone Number)</span><br>
+          <span class="badge" style="margin-top:6px">BGV Report</span>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="card-h">Background Verification Report</div>
+      <table class="kv">
+        <tr><td class="k">Case Start Date</td><td>01/03/2026</td></tr>
+        <tr><td class="k">Case End Date</td><td>03/03/2026</td></tr>
+        <tr><td class="k">Report Severity</td><td class="matched">Clear</td></tr>
+        <tr><td class="k">Report Status</td><td>Completed</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h3 class="sectitle">Executive Summary</h3>
+  <div class="grid2">
+    <div class="sumcard"><div class="row1"><b class="title">National Identity Check Report</b><span class="pill clear">Completed</span></div><div class="meta">Severity: <b class="matched">Clear</b> &nbsp;·&nbsp; Verified By: DigiLocker &amp; UIDAI</div><div class="pg">Page 4</div></div>
+    <div class="sumcard"><div class="row1"><b class="title">Employment Check Report</b><span class="pill clear">Completed</span></div><div class="meta">Severity: <b class="matched">Clear</b> &nbsp;·&nbsp; Verified By: EPFO &amp; Relynt</div><div class="pg">Page 6</div></div>
+    <div class="sumcard"><div class="row1"><b class="title">Reference Check Report</b><span class="pill clear">Completed</span></div><div class="meta">Severity: <b class="matched">Clear</b> &nbsp;·&nbsp; Verified By: Relynt</div><div class="pg">Page 7</div></div>
+    <div class="sumcard"><div class="row1"><b class="title">Crime Check Report</b><span class="pill clear">Completed</span></div><div class="meta">Severity: <b class="matched">Clear</b> &nbsp;·&nbsp; Verified By: Indian Court Records</div><div class="pg">Page 8</div></div>
+    <div class="sumcard"><div class="row1"><b class="title">Digital Address Verification</b><span class="pill clear">Completed</span></div><div class="meta">Severity: <b class="matched">Clear</b> &nbsp;·&nbsp; Verified By: Relynt</div><div class="pg">Page 9</div></div>
+    <div class="sumcard"><div class="row1"><b class="title">Education Verification Report</b><span class="pill clear">Completed</span></div><div class="meta">Severity: <b class="matched">Clear</b> &nbsp;·&nbsp; Verified By: DigiLocker &amp; University Partner</div><div class="pg">Page 10</div></div>
+    <div class="sumcard"><div class="row1"><b class="title">Social Check Report</b><span class="pill clear">Completed</span></div><div class="meta">Severity: <b class="matched">Clear</b> &nbsp;·&nbsp; Verified By: Social Media Platforms</div><div class="pg">Page 11</div></div>
+    <div class="sumcard"><div class="row1"><b class="title">Global DB Check</b><span class="pill clear">Completed</span></div><div class="meta">Severity: <b class="matched">Clear</b> &nbsp;·&nbsp; Verified By: Global DB Records</div><div class="pg">Page 12</div></div>
+  </div>
+
+  <h3 class="sectitle">Severity Representation</h3>
+  <div class="legend-row"><div class="legend-dot" style="background:var(--disc)"></div><div><b>Discrepancy</b><span>The information provided does not match the verified details.</span></div></div>
+  <div class="legend-row"><div class="legend-dot" style="background:var(--minor)"></div><div><b>Minor Discrepancy</b><span>There is a small difference, but it does not significantly impact verification.</span></div></div>
+  <div class="legend-row"><div class="legend-dot" style="background:var(--gray)"></div><div><b>No Response Received</b><span>The verification source did not respond to the request.</span></div></div>
+  <div class="legend-row"><div class="legend-dot" style="background:var(--insuf)"></div><div><b>Insufficient Data</b><span>The provided information is not enough to complete verification.</span></div></div>
+  <div class="legend-row"><div class="legend-dot" style="background:var(--except)"></div><div><b>Completed with Exception</b><span>Verification is mostly clear, but some details remain unknown.</span></div></div>
+  <div class="legend-row"><div class="legend-dot" style="background:var(--clear)"></div><div><b>Clear</b><span>All details have been verified with no issues.</span></div></div>
+  <div class="legend-row"><div class="legend-dot" style="background:var(--inconc)"></div><div><b>Inconclusive</b><span>Contains both clear and discrepant information, making the result uncertain.</span></div></div>
+
+  <div class="foot">For [Client Legal Name] / CIN - [XXXXXXXXXXXXXXXXX]</div>
+</div>
+
+<!-- ============ PAGE 3 : CHECK 1 IDENTITY (Aadhaar) ============ -->
+<div class="page pb">
+  <div class="hdrtop">
+    <div class="hdr brand" style="padding:0"><div class="logo">R</div><b style="font-size:17px">Relynt</b></div>
+    <div class="iso">ISO<br>27001<br>Certified</div>
+  </div>
+  <div class="hdr" style="padding-top:2px"><div class="company">[Client Legal Name]</div><div class="ref">Ref No.<br><b>REL-SAMPLE-000123</b></div></div>
+  <div class="accentline"></div>
+
+  <div class="checklbl"><div class="n">Check 1</div><h2>National Identity Check Report</h2></div>
+
+  <div class="card">
+    <div class="card-h">Aadhaar Verification</div>
+    <table class="kv">
+      <tr><td class="k">Aadhaar Number (Given)</td><td>████████████</td></tr>
+      <tr><td class="k">Name (Given)</td><td>Sample Candidate</td></tr>
+      <tr><td class="k">Aadhaar Number</td><td>xxxxxxxx1234</td></tr>
+      <tr><td class="k">Name</td><td>Sample Candidate</td></tr>
+      <tr><td class="k">Gender</td><td>Female</td></tr>
+      <tr><td class="k">Date of Birth</td><td>████████</td></tr>
+      <tr><td class="k">Village/Town/City</td><td>[City]</td></tr>
+    </table>
+    <div class="statusbar"><span class="k">Severity: <b class="matched">Clear</b></span><span class="k">Timestamp: 01 March 2026, 10:14</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">Aadhaar Verification Matched Data</div>
+    <table class="dt">
+      <tr><th>Description</th><th>Given Details</th><th>Verified Data</th><th>Result</th></tr>
+      <tr><td>Full Name</td><td>Sample Candidate</td><td>Sample Candidate</td><td class="matched">Matched</td></tr>
+      <tr><td>Aadhaar Number</td><td>████1234</td><td>xxxxxxxx1234</td><td class="matched">Matched</td></tr>
+      <tr><td>Gender</td><td>female</td><td>Female</td><td class="matched">Matched</td></tr>
+      <tr><td>Date of Birth</td><td>██-██-████</td><td>██-██-████</td><td class="matched">Matched</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-h">PAN Verification</div>
+    <table class="kv">
+      <tr><td class="k">Name</td><td>SAMPLE CANDIDATE</td></tr>
+      <tr><td class="k">Date of Birth</td><td>██-██-████</td></tr>
+      <tr><td class="k">Gender</td><td>Female</td></tr>
+      <tr><td class="k">PAN Number</td><td>██████1Z</td></tr>
+    </table>
+    <div class="statusbar"><span class="k">Severity: <b class="matched">Clear</b></span><span class="k">Timestamp: 01 March 2026, 10:16</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">Passport Verification</div>
+    <table class="kv">
+      <tr><td class="k">File Number (Given)</td><td>SA0000000000000</td></tr>
+      <tr><td class="k">Status</td><td class="matched">Verified</td></tr>
+      <tr><td class="k">Name of Person</td><td>Sample Candidate</td></tr>
+      <tr><td class="k">Passport Number</td><td>████████</td></tr>
+      <tr><td class="k">Message</td><td>Passport Verified Successfully</td></tr>
+    </table>
+    <div class="statusbar"><span class="k">Severity: <b class="matched">Clear</b></span><span class="k">Timestamp: 01 March 2026, 10:18</span></div>
+  </div>
+
+  <div class="foot">For [Client Legal Name] / CIN - [XXXXXXXXXXXXXXXXX]</div>
+</div>
+
+<!-- ============ PAGE 4 : CHECK 2 EMPLOYMENT ============ -->
+<div class="page pb">
+  <div class="hdrtop">
+    <div class="hdr brand" style="padding:0"><div class="logo">R</div><b style="font-size:17px">Relynt</b></div>
+    <div class="iso">ISO<br>27001<br>Certified</div>
+  </div>
+  <div class="hdr" style="padding-top:2px"><div class="company">[Client Legal Name]</div><div class="ref">Ref No.<br><b>REL-SAMPLE-000123</b></div></div>
+  <div class="accentline"></div>
+
+  <div class="checklbl"><div class="n">Check 2</div><h2>Employment Check Report</h2></div>
+  <p style="text-align:center;font:700 15px Sora,Arial;color:var(--ink);margin:0 0 12px">[Previous Employer Name]</p>
+
+  <div class="card">
+    <div class="card-h">Details Given by Candidate</div>
+    <div style="padding:14px 16px">
+      <b style="font-size:11.5px;color:var(--s);text-transform:uppercase;letter-spacing:.3px">Company Details</b>
+      <div class="grid2" style="margin-top:8px">
+        <div class="infoline"><div class="iconbox">🏢</div><div><b>Company Name</b><span>[Employer Name]</span></div></div>
+        <div class="infoline"><div class="iconbox">💼</div><div><b>Designation</b><span>Senior Analyst</span></div></div>
+        <div class="infoline"><div class="iconbox">📅</div><div><b>Start Date</b><span>01-04-2022</span></div></div>
+        <div class="infoline"><div class="iconbox">📅</div><div><b>End Date</b><span>15-01-2026</span></div></div>
+      </div>
+      <b style="font-size:11.5px;color:var(--s);text-transform:uppercase;letter-spacing:.3px">Reference Details (Verification by HR)</b>
+      <div class="grid2" style="margin-top:8px">
+        <div class="infoline"><div class="iconbox">👤</div><div><b>Name</b><span>[HR Contact Name]</span></div></div>
+        <div class="infoline"><div class="iconbox">📞</div><div><b>Phone</b><span>+91 XXXXX-XX000</span></div></div>
+        <div class="infoline"><div class="iconbox">✉️</div><div><b>Email</b><span>hr@[employer].com</span></div></div>
+        <div class="infoline"><div class="iconbox">📊</div><div><b>Status</b><span class="matched">Clear</span></div></div>
+      </div>
+      <p style="font-size:10.5px;color:var(--mute);font-style:italic;margin:6px 0 0">Note: Activity logs of the user will be available when the reference submits the form.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">Workmail Verification</div>
+    <div style="padding:14px 16px" class="grid2">
+      <div class="infoline"><div class="iconbox">✉️</div><div><b>Email</b><span>████████</span></div></div>
+      <div class="infoline"><div class="iconbox">📊</div><div><b>Status</b><span class="matched">Clear</span></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">Verification by EPFO</div>
+    <table class="dt">
+      <tr><th>Company Name</th><th>Start Date</th><th>End Date</th></tr>
+      <tr><td>[Employer Legal Name]</td><td>01-04-2022</td><td>15-01-2026</td></tr>
+    </table>
+    <div class="statusbar"><span class="k">Severity: <b class="matched">Clear</b></span><span class="k">Timestamp: 01 March 2026, 10:22</span></div>
+  </div>
+
+  <div class="foot">For [Client Legal Name] / CIN - [XXXXXXXXXXXXXXXXX]</div>
+</div>
+
+<!-- ============ PAGE 5 : CHECK 3 REFERENCE + CHECK 4 CRIME ============ -->
+<div class="page pb">
+  <div class="hdrtop">
+    <div class="hdr brand" style="padding:0"><div class="logo">R</div><b style="font-size:17px">Relynt</b></div>
+    <div class="iso">ISO<br>27001<br>Certified</div>
+  </div>
+  <div class="hdr" style="padding-top:2px"><div class="company">[Client Legal Name]</div><div class="ref">Ref No.<br><b>REL-SAMPLE-000123</b></div></div>
+  <div class="accentline"></div>
+
+  <div class="checklbl"><div class="n">Check 3</div><h2>Reference Check Report</h2></div>
+  <p style="text-align:center;margin:0 0 12px"><b style="font:700 15px Sora,Arial;color:var(--ink)">[Previous Employer Name]</b><br><span style="color:var(--mute);font-size:12px">Senior Analyst</span></p>
+  <div class="card">
+    <div class="card-h">Reference List</div>
+    <table class="dt">
+      <tr><th style="width:44px">SN</th><th>Reference</th><th>Status</th><th>Severity</th></tr>
+      <tr><td>1</td><td>[Reference Name]</td><td>Completed</td><td class="matched">Clear</td></tr>
+    </table>
+    <div class="statusbar"><span class="k">Severity: <b class="matched">Clear</b></span><span class="k">Timestamp: 02 March 2026, 09:40</span></div>
+  </div>
+
+  <div class="checklbl" style="margin-top:22px"><div class="n">Check 4</div><h2>Crime Check</h2></div>
+  <div class="card">
+    <div style="padding:16px;display:flex;gap:18px;align-items:center">
+      <div style="flex:0 0 190px">
+        <div class="riskbar"><div class="marker" style="left:92%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--mute)"><span>Very High</span><span>No Risk</span></div>
+      </div>
+      <div style="flex:1">
+        <span class="badge">No Risk</span>
+        <p style="margin:8px 0 0;font-size:12px;color:var(--ink)">As per our court records search, there are no cases found against or instituted by the subject.</p>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-h">Candidate Details</div>
+    <table class="kv">
+      <tr><td class="k">DOB</td><td>██-██-████</td></tr>
+      <tr><td class="k">Name</td><td>SAMPLE CANDIDATE</td></tr>
+      <tr><td class="k">Address</td><td>[Address Line], [City] - [PIN], [State]</td></tr>
+      <tr><td class="k">Father Name</td><td>[Father's Name]</td></tr>
+    </table>
+  </div>
+
+  <div class="foot">For [Client Legal Name] / CIN - [XXXXXXXXXXXXXXXXX]</div>
+</div>
+
+<!-- ============ PAGE 6 : CHECK 5 ADDRESS ============ -->
+<div class="page pb">
+  <div class="hdrtop">
+    <div class="hdr brand" style="padding:0"><div class="logo">R</div><b style="font-size:17px">Relynt</b></div>
+    <div class="iso">ISO<br>27001<br>Certified</div>
+  </div>
+  <div class="hdr" style="padding-top:2px"><div class="company">[Client Legal Name]</div><div class="ref">Ref No.<br><b>REL-SAMPLE-000123</b></div></div>
+  <div class="accentline"></div>
+
+  <div class="checklbl"><div class="n">Check 5</div><h2>Digital Address Verification Report</h2></div>
+
+  <div class="card">
+    <div class="card-h">Candidate Details</div>
+    <table class="kv">
+      <tr><td class="k">Name</td><td>Sample Candidate</td></tr>
+      <tr><td class="k">Full Address</td><td>[Address Line], [City] - [PIN], [State]</td></tr>
+      <tr><td class="k">Permanent Address</td><td>No</td></tr>
+    </table>
+    <div class="statusbar"><span class="k">Severity: <b class="matched">Clear</b></span><span class="k">Timestamp: 02 March 2026, 11:05</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">Address Verification</div>
+    <div style="padding:14px 16px" class="grid2">
+      <div class="infoline"><div class="iconbox">📍</div><div><b>Address Location</b><span>██.████, ██.████</span></div></div>
+      <div class="infoline"><div class="iconbox">📱</div><div><b>Device Location</b><span>██.████, ██.████</span></div></div>
+      <div class="infoline"><div class="iconbox">📏</div><div><b>Distance (B/W Location)</b><span>4.8 m</span></div></div>
+      <div class="infoline"><div class="iconbox">📊</div><div><b>Status</b><span class="matched">Completed</span></div></div>
+    </div>
+    <div class="statusbar"><span class="k">Severity: <b class="matched">Clear</b></span><span class="k">Timestamp: 02 March 2026, 11:08</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">House &amp; Face Verification</div>
+    <div style="padding:14px 16px" class="grid2">
+      <div class="infoline"><div class="iconbox">🧿</div><div><b>Face Matching Score</b><span>98.6%</span></div></div>
+      <div class="infoline"><div class="iconbox">📊</div><div><b>Status</b><span class="matched">Success</span></div></div>
+      <div class="infoline"><div class="iconbox">💬</div><div><b>Comment</b><span>All the provided images are correct and valid.</span></div></div>
+      <div class="infoline"><div class="iconbox">📊</div><div><b>Status</b><span class="matched">Verified</span></div></div>
+    </div>
+    <div class="statusbar"><span class="k">Severity: <b class="matched">Clear</b></span><span class="k">Timestamp: 02 March 2026, 11:09</span></div>
+  </div>
+
+  <div class="foot">For [Client Legal Name] / CIN - [XXXXXXXXXXXXXXXXX]</div>
+</div>
+
+<!-- ============ PAGE 7 : CHECK 6 EDUCATION ============ -->
+<div class="page pb">
+  <div class="hdrtop">
+    <div class="hdr brand" style="padding:0"><div class="logo">R</div><b style="font-size:17px">Relynt</b></div>
+    <div class="iso">ISO<br>27001<br>Certified</div>
+  </div>
+  <div class="hdr" style="padding-top:2px"><div class="company">[Client Legal Name]</div><div class="ref">Ref No.<br><b>REL-SAMPLE-000123</b></div></div>
+  <div class="accentline"></div>
+
+  <div class="checklbl"><div class="n">Check 6</div><h2>Education Verification Report</h2></div>
+
+  <div class="card">
+    <div class="card-h" style="display:flex;justify-content:space-between;align-items:center;text-align:left">
+      <span class="badge">✓ Green Profile</span>
+    </div>
+    <div style="padding:12px 16px;font-size:12px;color:var(--mute)">No adverse records were found during our investigation.</div>
+    <table class="kv">
+      <tr><td class="k">Completed On</td><td>04 Mar 2026</td></tr>
+      <tr><td class="k">Requested On</td><td>02 Mar 2026</td></tr>
+      <tr><td class="k">Effective TAT</td><td>2 days</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-h">Qualification</div>
+    <table class="kv">
+      <tr><td class="k">Institute</td><td>[University / College Name]</td></tr>
+      <tr><td class="k">Degree Name</td><td>Bachelor of [Discipline]</td></tr>
+      <tr><td class="k">Certifying Authority</td><td>[University Name]</td></tr>
+      <tr><td class="k">Roll Number / Registration Number</td><td>████████</td></tr>
+      <tr><td class="k">Course Start Date</td><td>[Month Year]</td></tr>
+      <tr><td class="k">Date of Passing</td><td>[Month Year]</td></tr>
+      <tr><td class="k">Verifier Name</td><td>[University Name]</td></tr>
+      <tr><td class="k">Status</td><td class="matched">Completed</td></tr>
+    </table>
+    <div class="statusbar"><span class="k">Severity: <b class="matched">Clear</b></span><span class="k">Timestamp: 04 March 2026</span></div>
+  </div>
+
+  <div class="foot">For [Client Legal Name] / CIN - [XXXXXXXXXXXXXXXXX]</div>
+</div>
+
+<!-- ============ PAGE 8 : CHECK 7 SOCIAL + CHECK 8 GLOBAL DB ============ -->
+<div class="page pb">
+  <div class="hdrtop">
+    <div class="hdr brand" style="padding:0"><div class="logo">R</div><b style="font-size:17px">Relynt</b></div>
+    <div class="iso">ISO<br>27001<br>Certified</div>
+  </div>
+  <div class="hdr" style="padding-top:2px"><div class="company">[Client Legal Name]</div><div class="ref">Ref No.<br><b>REL-SAMPLE-000123</b></div></div>
+  <div class="accentline"></div>
+
+  <div class="checklbl"><div class="n">Check 7</div><h2>Social Check Report</h2></div>
+  <div class="card">
+    <div style="padding:16px;display:flex;gap:14px;align-items:center">
+      <div class="photo">SC</div>
+      <div>
+        <b style="font:700 14px Sora,Arial;color:var(--ink)">Sample Candidate</b><br>
+        <span style="color:var(--mute);font-size:11.5px">Senior Analyst · [Industry] Professional</span><br>
+        <span style="color:var(--mute);font-size:11.5px">📍 [City], [State], India · 800+ Connections</span>
+      </div>
+    </div>
+    <table class="dt">
+      <tr><th>Organisation</th><th>Role</th><th>Duration</th></tr>
+      <tr><td>[Employer Name]</td><td>Senior Analyst</td><td>Apr 2022 – Present</td></tr>
+      <tr><td>[Previous Employer]</td><td>Analyst</td><td>Jun 2019 – Mar 2022</td></tr>
+    </table>
+    <div class="statusbar"><span class="k">Severity: <b class="matched">Clear</b></span><span class="k">Verified By: Social Media Platforms</span></div>
+  </div>
+
+  <div class="checklbl" style="margin-top:22px"><div class="n">Check 8</div><h2>Global Database Check Report</h2></div>
+  <div class="card">
+    <div class="card-h">Candidate Details</div>
+    <table class="kv">
+      <tr><td class="k">Name</td><td>Sample Candidate</td></tr>
+      <tr><td class="k">Birth Year</td><td>████</td></tr>
+      <tr><td class="k">Screened On</td><td>Sanctions, PEP, Warnings, Adverse Media</td></tr>
+    </table>
+  </div>
+  <div class="grid2">
+    <div class="sumcard"><span class="badge">No Risk</span><div style="font:800 24px Sora,Arial;color:var(--p);margin:6px 0 2px">0</div><div class="meta">Sanctions — No hits found.</div></div>
+    <div class="sumcard"><span class="badge">No Risk</span><div style="font:800 24px Sora,Arial;color:var(--p);margin:6px 0 2px">0</div><div class="meta">Watch List / Warnings — No hits found.</div></div>
+    <div class="sumcard"><span class="badge">No Risk</span><div style="font:800 24px Sora,Arial;color:var(--p);margin:6px 0 2px">0</div><div class="meta">PEP (Politically Exposed Persons) — No hits found.</div></div>
+    <div class="sumcard"><span class="badge">No Risk</span><div style="font:800 24px Sora,Arial;color:var(--p);margin:6px 0 2px">0</div><div class="meta">Adverse Media — No hits found.</div></div>
+  </div>
+
+  <div class="foot">For [Client Legal Name] / CIN - [XXXXXXXXXXXXXXXXX]</div>
+</div>
+
+<!-- ============ PAGE 9 : DISCLAIMER ============ -->
+<div class="page pb">
+  <div class="watermark">SAMPLE REPORT</div>
+  <div class="hdrtop" style="position:relative;z-index:1">
+    <div class="hdr brand" style="padding:0"><div class="logo">R</div><b style="font-size:17px">Relynt</b></div>
+    <div class="iso">ISO<br>27001<br>Certified</div>
+  </div>
+  <div class="hdr" style="padding-top:2px;position:relative;z-index:1"><div class="company">[Client Legal Name]</div><div class="ref">Ref No.<br><b>REL-SAMPLE-000123</b></div></div>
+  <div class="accentline"></div>
+
+  <div style="position:relative;z-index:1">
+  <h3 class="sectitle" style="margin-top:0">Disclaimer &amp; Limitations of Research</h3>
+  <p style="text-align:justify;font-size:12px">The client should take into consideration the following points before making a decision on the basis of this report:</p>
+  <p style="text-align:justify;font-size:12px">The report must be used in accordance with applicable data protection laws. Except where required by law, no information provided in this report may be revealed directly or indirectly to any unauthorized third party or person.</p>
+  <p style="text-align:justify;font-size:12px">[Relynt Legal Entity Name] does not provide an opinion about the individual or the entity researched, nor should it be considered a definitive pronouncement on the subject or as a recommendation. The information provided herein shall not be construed to constitute a legal opinion. Final verification of an individual's identity and fair use of these consumer reports is the user's responsibility. Client management shall be fully and solely responsible for applying independent judgment, concerning the findings provided in this report, to make appropriate decisions about the future course of action, if any. [Relynt Legal Entity Name] shall not be responsible for the employment decision or any other consequences resulting from decisions based on information included in this report.</p>
+  <p style="text-align:justify;font-size:12px">[Relynt Legal Entity Name] has simply compiled the information, including public records and/or data, in a structured way for the client's review. Although every effort has been made to assure accuracy and exhaustiveness, [Relynt Legal Entity Name] cannot act as the guarantor of the information's accuracy or completeness.</p>
+  <p style="text-align:justify;font-size:12px">The records contained in this report are compiled from various databases that are updated at defined, undefined, or infrequent intervals, and therefore may or may not have the most current information. The desktop search is limited to information available in the public domain in the English language only.</p>
+  <p style="text-align:justify;font-size:12px">These databases are not owned or updated by [Relynt Legal Entity Name], and therefore [Relynt Legal Entity Name] has no control over the frequency of their updates. [Relynt Legal Entity Name] works with exact and/or partial matches, subject to the constraints of identifiable data points on the various databases it uses. The absence of a match does not mean there is no litigation or regulatory action involving the entity or the individual.</p>
+  <p style="text-align:justify;font-size:12px">Where a criminal record check is conducted through online databases, police records or law firms, there is a possibility of not finding criminal records in the name of the individual where address verification (current, previous or permanent) was either not initiated for any reason — including non-disclosure of an address by the candidate — or is discrepant, in which case the individual may never have resided at the address.</p>
+  <p style="margin-top:26px;font-size:11px;font-style:italic;color:var(--mute)">This is a system-generated report; manual signing is not required.</p>
+  </div>
+
+  <div class="foot">For [Client Legal Name] / CIN - [XXXXXXXXXXXXXXXXX]</div>
+</div>
+
+</body>
+</html>
