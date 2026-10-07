@@ -106,10 +106,14 @@ export default function EmployeeReview() {
     setGeneratingReport(true)
 
     try {
+      const verifiedAtByType: Record<string, string | null> = {}
+      data.verifications.forEach(v => { verifiedAtByType[v.doc_type] = v.verified_at })
+
       const allVerifs = ALL_DOC_TYPES.map(dt => ({
         docType: dt,
         status: localVerifs[dt]?.status ?? ('pending' as VerificationStatus),
         notes: localVerifs[dt]?.notes ?? '',
+        verifiedAt: verifiedAtByType[dt] ?? null,
       }))
 
       const verdict = allVerifs.every(v => v.status === 'verified') ? 'CLEAR' as const : 'DISCREPANCY FOUND' as const
@@ -132,6 +136,9 @@ export default function EmployeeReview() {
           verifiedBy={profile.full_name}
           verdict={verdict}
           generatedAt={new Date().toISOString()}
+          clientName={profile.company_name ?? 'Client Organization'}
+          refNo={`SV-${data.employee.id.replace(/-/g, '').slice(0, 8).toUpperCase()}`}
+          caseStart={data.employee.submitted_at}
         />
       ).toBlob()
 
