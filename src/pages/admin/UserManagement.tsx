@@ -19,16 +19,26 @@ import { formatDate } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import type { Profile, SubscriptionStatus, UserRole } from '@/lib/types'
 
+const getInitials = (name: string) => {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  return (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase()
+}
+
 export default function UserManagement() {
   const { profile: currentProfile } = useAuth()
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null)
-  
+
   const [editName, setEditName] = useState('')
+  const [editEmail, setEditEmail] = useState('')
   const [editCompany, setEditCompany] = useState('')
   const [editRole, setEditRole] = useState<UserRole>('hr')
-  
+  const [editStatus, setEditStatus] = useState<SubscriptionStatus>('pending')
+  const [editSeatsTotal, setEditSeatsTotal] = useState(0)
+  const [editSeatsUsed, setEditSeatsUsed] = useState(0)
+
   const [seatsProfile, setSeatsProfile] = useState<Profile | null>(null)
   const [seatsToAdd, setSeatsToAdd] = useState(5)
 
@@ -57,8 +67,26 @@ export default function UserManagement() {
   })
 
   const updateUser = useMutation({
-    mutationFn: async ({ id, full_name, company_name, role }: { id: string; full_name: string; company_name: string; role: UserRole }) => {
-      const { error } = await supabase.from('profiles').update({ full_name, company_name, role }).eq('id', id)
+    mutationFn: async (values: {
+      id: string
+      full_name: string
+      email: string
+      company_name: string
+      role: UserRole
+      subscription_status: SubscriptionStatus
+      bgv_seats_total: number
+      bgv_seats_used: number
+    }) => {
+      const { error } = await supabase.rpc('admin_update_profile', {
+        target_user_id: values.id,
+        p_full_name: values.full_name,
+        p_email: values.email,
+        p_company_name: values.company_name,
+        p_role: values.role,
+        p_subscription_status: values.subscription_status,
+        p_bgv_seats_total: values.bgv_seats_total,
+        p_bgv_seats_used: values.bgv_seats_used,
+      })
       if (error) throw error
     },
     onSuccess: () => {
@@ -66,7 +94,7 @@ export default function UserManagement() {
       setEditingProfile(null)
       queryClient.invalidateQueries({ queryKey: ['admin-all-profiles'] })
     },
-    onError: () => toast.error('Failed to update user'),
+    onError: (err) => toast.error(err.message || 'Failed to update user'),
   })
 
   const updateRole = useMutation({
@@ -119,12 +147,13 @@ export default function UserManagement() {
       setSeatsToAdd(5)
       queryClient.invalidateQueries({ queryKey: ['admin-all-profiles'] })
     },
-    onError: (err: any) => toast.error(err.message || 'Failed to add seats'),
+    onError: (err: Error) => toast.error(err.message || 'Failed to add seats'),
   })
 
   const filtered = profiles.filter(p =>
     p.id !== currentProfile?.id && (
       p.full_name.toLowerCase().includes(search.toLowerCase()) ||
+      (p.email ?? '').toLowerCase().includes(search.toLowerCase()) ||
       (p.company_name ?? '').toLowerCase().includes(search.toLowerCase())
     )
   )
@@ -154,7 +183,7 @@ export default function UserManagement() {
             <Table>
               <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
+                    <TableHead>User</TableHead>
                     <TableHead>Company</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Registered</TableHead>
@@ -166,7 +195,17 @@ export default function UserManagement() {
               <TableBody>
                 {filtered.map(profile => (
                     <TableRow key={profile.id}>
-                      <TableCell className="font-medium">{profile.full_name}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 shrink-0 rounded-full bg-accent/20 text-primary flex items-center justify-center text-xs font-semibold">
+                            {getInitials(profile.full_name)}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-medium truncate">{profile.full_name}</div>
+                            <div className="text-xs text-muted-foreground truncate">{profile.email ?? '—'}</div>
+                          </div>
+                        </div>
+                      </TableCell>
                       <TableCell className="text-muted-foreground text-sm">{profile.company_name ?? '—'}</TableCell>
                       <TableCell>
                         <Select
@@ -279,8 +318,12 @@ export default function UserManagement() {
                           onClick={() => {
                             setEditingProfile(profile)
                             setEditName(profile.full_name)
+                            setEditEmail(profile.email || '')
                             setEditCompany(profile.company_name || '')
                             setEditRole(profile.role)
+                            setEditStatus(profile.subscription_status)
+                            setEditSeatsTotal(profile.bgv_seats_total ?? 0)
+                            setEditSeatsUsed(profile.bgv_seats_used ?? 0)
                           }}
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -337,6 +380,10 @@ export default function UserManagement() {
               <Input value={editName} onChange={e => setEditName(e.target.value)} />
             </div>
             <div className="space-y-2">
+              <Label>Email</Label>
+              <Input type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)} />
+            </div>
+            <div className="space-y-2">
               <Label>Company Name</Label>
               <Input value={editCompany} onChange={e => setEditCompany(e.target.value)} />
             </div>
@@ -353,13 +400,55 @@ export default function UserManagement() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label>Account Status</Label>
+              <Select value={editStatus} onValueChange={(val: SubscriptionStatus) => setEditStatus(val)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="suspended">Suspended</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>BGV Seats Total</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={editSeatsTotal}
+                  onChange={e => setEditSeatsTotal(Math.max(0, Number(e.target.value)))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>BGV Seats Used</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={editSeatsUsed}
+                  onChange={e => setEditSeatsUsed(Math.max(0, Number(e.target.value)))}
+                />
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingProfile(null)}>Cancel</Button>
             <Button 
               onClick={() => {
                 if (editingProfile) {
-                  updateUser.mutate({ id: editingProfile.id, full_name: editName, company_name: editCompany, role: editRole })
+                  updateUser.mutate({
+                    id: editingProfile.id,
+                    full_name: editName,
+                    email: editEmail,
+                    company_name: editCompany,
+                    role: editRole,
+                    subscription_status: editStatus,
+                    bgv_seats_total: editSeatsTotal,
+                    bgv_seats_used: editSeatsUsed,
+                  })
                 }
               }}
               loading={updateUser.isPending}
