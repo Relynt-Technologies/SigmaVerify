@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
-import { CheckCircle2, ChevronRight, ChevronLeft, Loader2 } from 'lucide-react'
+import { CheckCircle2, ChevronRight, ChevronLeft, Loader2, ShieldCheck } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { DocumentUploader } from '@/components/forms/DocumentUploader'
 import { Button } from '@/components/ui/button'
@@ -30,7 +30,8 @@ export default function PublicForm() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
-  const [currentStep, setCurrentStep] = useState(0)
+  const [currentStep, setCurrentStep] = useState(-1) // -1 = consent screen
+  const [consented, setConsented] = useState(false)
   const [files, setFiles] = useState<Record<DocType, File | null>>({
     pan: null, aadhaar_court: null, aadhaar_address: null,
     experience_letter: null, education_certificate: null,
@@ -57,7 +58,7 @@ export default function PublicForm() {
       })
   }, [token])
 
-  const currentStepData = STEPS[currentStep]
+  const currentStepData = STEPS[Math.max(currentStep, 0)]
 
   const canProceed = () => {
     const file = files[currentStepData.docType]
@@ -87,7 +88,7 @@ export default function PublicForm() {
   }
 
   const handleSubmit = async () => {
-    if (!employee) return
+    if (!employee || !consented) return
     setUploading(true)
 
     try {
@@ -205,6 +206,7 @@ export default function PublicForm() {
         </div>
 
         {/* Progress bar */}
+        {currentStep >= 0 && (
         <div className="mb-8">
           <div className="flex items-center justify-between mb-3">
             {STEPS.map((step, i) => (
@@ -229,8 +231,75 @@ export default function PublicForm() {
             />
           </div>
         </div>
+        )}
 
-        {/* Step card */}
+        {currentStep < 0 ? (
+        <div className="bg-white rounded-2xl border border-border shadow-sm p-6 space-y-5">
+          <div>
+            <div className="text-xs font-medium text-[#6FC2CB] uppercase tracking-wider mb-1">
+              Consent Required
+            </div>
+            <h2 className="text-lg font-semibold text-foreground">Data collection & purpose</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Before uploading any documents, please review what we capture and why.
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-border bg-muted/40 p-4 space-y-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-[#063840]" />
+                <h3 className="text-sm font-semibold text-foreground">Data we will capture</h3>
+              </div>
+              <ul className="mt-2 space-y-1.5 text-sm text-muted-foreground list-disc pl-4">
+                <li>
+                  <span className="font-medium text-foreground">Identity documents</span> — copies of your
+                  PAN card and Aadhaar card
+                </li>
+                <li>
+                  <span className="font-medium text-foreground">Contact & address details</span> — your
+                  name, email, phone number, and permanent address
+                </li>
+                <li>
+                  <span className="font-medium text-foreground">Employment & education records</span> —
+                  your experience letter and education certificate
+                </li>
+                <li>
+                  <span className="font-medium text-foreground">Uploaded files</span> — the documents you
+                  submit, stored exactly as provided
+                </li>
+              </ul>
+            </div>
+
+            <div className="border-t border-border pt-4">
+              <h3 className="text-sm font-semibold text-foreground">Why we capture it</h3>
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                Solely to complete your background verification — confirming your identity, court records,
+                address, employment history, and education qualifications. Your data is encrypted, visible
+                only to authorized verification personnel, and is not used for any other purpose.
+              </p>
+            </div>
+          </div>
+
+          <label htmlFor="consent" className="flex items-start gap-3 cursor-pointer">
+            <input
+              id="consent"
+              type="checkbox"
+              checked={consented}
+              onChange={e => setConsented(e.target.checked)}
+              className="size-4 accent-primary cursor-pointer mt-0.5"
+            />
+            <span className="text-sm text-foreground">I consent and proceed</span>
+          </label>
+
+          <div className="flex items-center justify-end pt-2">
+            <Button onClick={() => setCurrentStep(0)} disabled={!consented}>
+              Continue
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        </div>
+        ) : (
         <div className="bg-white rounded-2xl border border-border shadow-sm p-6 space-y-5">
           <div>
             <div className="text-xs font-medium text-[#6FC2CB] uppercase tracking-wider mb-1">
@@ -287,6 +356,7 @@ export default function PublicForm() {
             )}
           </div>
         </div>
+        )}
 
         <p className="text-center text-xs text-muted-foreground mt-4">
           Your documents are encrypted and stored securely. Only authorized personnel can access them.
